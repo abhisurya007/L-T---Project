@@ -1,31 +1,29 @@
-from flask import Flask, request, jsonify, render_template
+import streamlit as st
 import joblib
-
-# Initialize Flask app
-app = Flask(__name__)
 
 # Load the trained model and vectorizer
 model = joblib.load('svm_spam_model.pkl')
 vectorizer = joblib.load('vectorizer.pkl')
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+# Streamlit App
+st.title("Email Spam Classifier")
+st.write("Enter an email below to check if it's Spam or Not Spam.")
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    # Get the input email text from the form
-    input_text = request.form['email_text']
-    
-    # Transform input using the vectorizer
-    input_vectorized = vectorizer.transform([input_text])
-    
-    # Predict using the loaded model
-    prediction = model.predict(input_vectorized)
-    
-    # Return result
-    result = "Spam" if prediction[0] == 1 else "Not Spam"
-    return render_template('index.html', prediction_text=f"Prediction: {result}")
+# Input Text Box
+input_text = st.text_area("Email Text:", "")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Prediction Button
+if st.button("Predict"):
+    if input_text:  # Ensure input isn't empty
+        # Transform the input text
+        input_vectorized = vectorizer.transform([input_text])
+        
+        # Make a prediction
+        prediction = model.predict(input_vectorized)
+        
+        # Show result
+        result = "Spam" if prediction[0] == 1 else "Not Spam"
+        st.success(f"Prediction: **{result}**")
+    else:
+        st.warning("Please enter some text to predict.")
+
